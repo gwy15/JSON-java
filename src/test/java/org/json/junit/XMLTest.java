@@ -24,12 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+
 import org.junit.Assert;
 
 import java.io.File;
@@ -825,6 +821,22 @@ public class XMLTest {
         Reader xmlReader = new InputStreamReader(xmlStream);
         JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/clinical_study/brief_summary"));
         Assert.assertNotNull(actual);
+    }
+
+    @Test
+    public void testToJsonObjectReplace() {
+        InputStream xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("Issue537.xml");
+        Reader xmlReader = new InputStreamReader(xmlStream);
+        JSONObject actual = XML.toJSONObject(
+                xmlReader,
+                new JSONPointer("/clinical_study/study_design_info"),
+                new JSONObject("{\"hello\": \"world\"}")
+        );
+        Assert.assertNotNull(actual);
+        actual = (JSONObject) actual.get("clinical_study");
+        actual = (JSONObject) actual.get("study_design_info");
+        Assert.assertEquals(actual.keySet().size(), 1);
+        Assert.assertEquals(actual.getString("hello"), "world");
     }
 
     /**

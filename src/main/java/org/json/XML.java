@@ -29,7 +29,10 @@ import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -638,6 +641,14 @@ public class XML {
         return toJSONObject(reader, XMLParserConfiguration.ORIGINAL);
     }
 
+    /**
+     * Convert a well-formed (but not necessarily valid) XML into a
+     * JSONObject and extract only the given path.
+     *
+     * @param reader The XML source reader.
+     * @param path   The path to extract.
+     * @return The JSONObject extracted.
+     */
     public static JSONObject toJSONObject(Reader reader, JSONPointer path) {
         JSONObject jo = new JSONObject();
         XMLTokener x = new XMLTokener(reader);
@@ -651,9 +662,35 @@ public class XML {
                 if (query != null) {
                     return query;
                 }
-            } catch (JSONPointerException ex) {}
+            } catch (JSONPointerException ex) {
+            }
         }
         return null;
+    }
+
+    /**
+     * Convert a well-formed (but not necessarily valid) XML into a
+     * JSONObject and replace part of its content.
+     *
+     * @param reader      The XML source reader.
+     * @param path        The path to replace.
+     * @param replacement The content to replace.
+     * @return The JSONObject after replacement.
+     */
+    public static JSONObject toJSONObject(Reader reader, JSONPointer path, JSONObject replacement) {
+        JSONObject jo = toJSONObject(reader);
+        JSONObject query = (JSONObject) path.queryFrom(jo);
+        if (query != null) {
+            // remove all
+            Set<String> keys = new HashSet<>(query.keySet());
+            for (String key : keys) {
+                query.remove(key);
+            }
+            for (Map.Entry entry : replacement.entrySet()) {
+                query.put((String) entry.getKey(), entry.getValue());
+            }
+        }
+        return jo;
     }
 
     /**
