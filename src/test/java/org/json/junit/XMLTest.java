@@ -25,7 +25,6 @@ SOFTWARE.
 */
 
 import static org.junit.Assert.*;
-
 import org.junit.Assert;
 
 import java.io.File;
@@ -40,8 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.json.*;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -686,24 +684,18 @@ public class XMLTest {
     public void testExtractToJsonObjectWithPath() {
         InputStream xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("Issue537.xml");
         Reader xmlReader = new InputStreamReader(xmlStream);
-        JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/clinical_study"));
+        JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/clinical_study/eligibility"));
         Assert.assertNotNull(actual);
+        Assert.assertEquals(actual.length(), 7);
+        Assert.assertEquals(actual.getString("healthy_volunteers"), "No");
     }
 
     @Test
     public void testExtractToJsonObjectWithPathEmpty() {
         InputStream xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("Issue537.xml");
         Reader xmlReader = new InputStreamReader(xmlStream);
-        JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/not_exist"));
+        JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/clinical_study/not_exist"));
         Assert.assertNull(actual);
-    }
-
-    @Test
-    public void testExtractToJsonObjectWithPathDeep() {
-        InputStream xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("Issue537.xml");
-        Reader xmlReader = new InputStreamReader(xmlStream);
-        JSONObject actual = XML.toJSONObject(xmlReader, new JSONPointer("/clinical_study/brief_summary"));
-        Assert.assertNotNull(actual);
     }
 
     @Test
@@ -715,7 +707,7 @@ public class XMLTest {
         Assert.assertNotNull(actual);
         actual = (JSONObject) actual.get("clinical_study");
         actual = (JSONObject) actual.get("study_design_info");
-        Assert.assertEquals(actual.keySet().size(), 1);
+        Assert.assertEquals(actual.length(), 1);
         Assert.assertEquals(actual.getString("hello"), "world");
     }
 
