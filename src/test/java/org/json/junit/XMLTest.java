@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 import static org.junit.Assert.*;
+
 import org.junit.Assert;
 
 import java.io.File;
@@ -375,7 +376,7 @@ public class XMLTest {
     @Test
     public void shouldHandleEmptyArray() {
         final JSONObject jo1 = new JSONObject();
-        jo1.put("array", new Object[] {});
+        jo1.put("array", new Object[]{});
         final JSONObject jo2 = new JSONObject();
         jo2.put("array", new JSONArray());
 
@@ -393,9 +394,9 @@ public class XMLTest {
     @Test
     public void shouldHandleEmptyMultiArray() {
         final JSONObject jo1 = new JSONObject();
-        jo1.put("arr", new Object[] { "One", new String[] {}, "Four" });
+        jo1.put("arr", new Object[]{"One", new String[]{}, "Four"});
         final JSONObject jo2 = new JSONObject();
-        jo2.put("arr", new JSONArray(new Object[] { "One", new JSONArray(new String[] {}), "Four" }));
+        jo2.put("arr", new JSONArray(new Object[]{"One", new JSONArray(new String[]{}), "Four"}));
 
         final String expected = "<jo><arr>One</arr><arr></arr><arr>Four</arr></jo>";
         String output1 = XML.toString(jo1, "jo");
@@ -410,9 +411,9 @@ public class XMLTest {
     @Test
     public void shouldHandleNonEmptyArray() {
         final JSONObject jo1 = new JSONObject();
-        jo1.put("arr", new String[] { "One", "Two", "Three" });
+        jo1.put("arr", new String[]{"One", "Two", "Three"});
         final JSONObject jo2 = new JSONObject();
-        jo2.put("arr", new JSONArray(new String[] { "One", "Two", "Three" }));
+        jo2.put("arr", new JSONArray(new String[]{"One", "Two", "Three"}));
 
         final String expected = "<jo><arr>One</arr><arr>Two</arr><arr>Three</arr></jo>";
         String output1 = XML.toString(jo1, "jo");
@@ -428,9 +429,9 @@ public class XMLTest {
     @Test
     public void shouldHandleMultiArray() {
         final JSONObject jo1 = new JSONObject();
-        jo1.put("arr", new Object[] { "One", new String[] { "Two", "Three" }, "Four" });
+        jo1.put("arr", new Object[]{"One", new String[]{"Two", "Three"}, "Four"});
         final JSONObject jo2 = new JSONObject();
-        jo2.put("arr", new JSONArray(new Object[] { "One", new JSONArray(new String[] { "Two", "Three" }), "Four" }));
+        jo2.put("arr", new JSONArray(new Object[]{"One", new JSONArray(new String[]{"Two", "Three"}), "Four"}));
 
         final String expected = "<jo><arr>One</arr><arr><array>Two</array><array>Three</array></arr><arr>Four</arr></jo>";
         String output1 = XML.toString(jo1, "jo");
@@ -968,5 +969,31 @@ public class XMLTest {
             fail("Expected to be unable to modify the config");
         } catch (Exception ignored) {
         }
+    }
+
+
+    @Test
+    public void testXmlToJsonWithKeyTransform() {
+        InputStream xmlStream = XMLTest.class.getClassLoader().getResourceAsStream("Issue537.xml");
+        Reader xmlReader = new InputStreamReader(xmlStream);
+        JSONObject actual = XML.toJSONObject(xmlReader, key -> "swe262_" + key);
+        Assert.assertNotNull(actual);
+
+        try {
+            actual.get("clinical_study");
+            fail();
+        } catch (JSONException e) {
+        }
+        Assert.assertNotNull(actual.get("swe262_clinical_study"));
+
+        try {
+            Assert.assertNull(actual.getJSONObject("swe262_clinical_study").getString("brief_title"));
+            fail();
+        } catch (JSONException e) {
+        }
+        Assert.assertEquals(
+                actual.getJSONObject("swe262_clinical_study").getString("swe262_brief_title"),
+                "CLEAR SYNERGY Neutrophil Substudy"
+        );
     }
 }
