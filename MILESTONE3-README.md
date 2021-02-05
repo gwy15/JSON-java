@@ -12,3 +12,6 @@ Generally speaking, the more complex the json object is with respect to the tree
 
 Unittests are written in `testXmlToJsonWithKeyTransform` method in `XMLTest.java` file.
 
+
+## Run
+To run the unit tests, run command `./gradlew test`. Please know that java 8 is required.
