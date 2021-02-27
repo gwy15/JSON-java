@@ -1245,6 +1245,24 @@ public class XML {
     }
 
     /**
+     * The asynchronous non-blocking version of toJSONObject.
+     * @param reader
+     */
+    public static void toJSONObject(Reader reader, Function<JSONObject, Void> success, Function<Exception, Void> fail) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jo = XML.toJSONObject(reader);
+                    success.apply(jo);
+                } catch (Exception e) {
+                    fail.apply(e);
+                }
+            }
+        }).start();
+    }
+
+    /**
      * Convert a well-formed (but not necessarily valid) XML string into a
      * JSONObject. Some information may be lost in this transformation because JSON
      * is a data format and XML is a document format. XML uses elements, attributes,

@@ -38,6 +38,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.json.*;
 import org.junit.*;
@@ -995,5 +998,59 @@ public class XMLTest {
                 actual.getJSONObject("swe262_clinical_study").getString("swe262_brief_title"),
                 "CLEAR SYNERGY Neutrophil Substudy"
         );
+    }
+
+    @Test
+    public void testXmlToJsonAsyncSuccess() {
+        BlockingQueue<Optional<JSONObject>> q = new ArrayBlockingQueue<Optional<JSONObject>>(1);
+        XML.toJSONObject(new StringReader("<hello world=\"123\"/>"), (JSONObject jo) -> {
+            try {
+                q.put(Optional.ofNullable(jo));
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            return null;
+        }, (Exception e) -> {
+            try {
+                q.put(Optional.empty());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            return null;
+        });
+        try {
+            Optional<JSONObject> optJo = q.take();
+            Assert.assertTrue(optJo.isPresent());
+            JSONObject jo = optJo.get();
+            Assert.assertEquals(jo.getJSONObject("hello").getInt("world"), 123);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testXmlToJsonAsyncFail() {
+        BlockingQueue<Optional<JSONObject>> q = new ArrayBlockingQueue<Optional<JSONObject>>(1);
+        XML.toJSONObject(new StringReader("<hello world=\"123\""), (JSONObject jo) -> {
+            try {
+                q.put(Optional.ofNullable(jo));
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            return null;
+        }, (Exception e) -> {
+            try {
+                q.put(Optional.empty());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            return null;
+        });
+        try {
+            Optional<JSONObject> optJo = q.take();
+            Assert.assertFalse(optJo.isPresent());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
